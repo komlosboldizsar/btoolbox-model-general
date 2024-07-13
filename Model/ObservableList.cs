@@ -41,7 +41,7 @@ namespace BToolbox.Model
             int count = underlying.Count;
             IEnumerable<IObservableEnumerable<T>.ItemWithPosition> removedItems = null;
             if (ItemsRemoved != null)
-                removedItems = underlying.Select((item, index) => new IObservableEnumerable<T>.ItemWithPosition(item, index));
+                removedItems = underlying.Select((item, index) => new IObservableEnumerable<T>.ItemWithPosition(item, index)).ToArray();
             underlying.Clear();
             if (count > 0)
                 ItemsRemoved?.Invoke(removedItems);
