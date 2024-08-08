@@ -1,4 +1,6 @@
-﻿namespace BToolbox.Helpers
+﻿using System.Net.Http.Headers;
+
+namespace BToolbox.Helpers
 {
     public static class DictionaryHelpers
     {
@@ -20,6 +22,14 @@
         {
             foreach (KeyValuePair<TKey, TValue> kvp in replacements)
                 changed[kvp.Key] = kvp.Value;
+        }
+
+        public static Dictionary<TValue, TKey> ReverseKeysValues<TKey, TValue>(this Dictionary<TKey, TValue> dictionary)
+        {
+            Dictionary<TValue, TKey> result = new();
+            foreach (KeyValuePair<TKey, TValue> kvp in dictionary)
+                result.Add(kvp.Value, kvp.Key);
+            return result;
         }
 
     }
