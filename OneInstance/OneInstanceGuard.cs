@@ -29,6 +29,13 @@ public class OneInstanceGuard
         return mutexResult;
     }
 
+    public static bool InitAnyway(bool signalOtherInstance = true)
+    {
+        if (serverId == null)
+            return true;
+        return Init(signalOtherInstance);
+    }
+
     private static async Task OneInstanceServerTask()
     {
         while (true)
