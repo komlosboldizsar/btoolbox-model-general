@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace BToolbox.Model
@@ -19,6 +20,9 @@ namespace BToolbox.Model
 
         public ICollection<TKey> Keys => new KeyCollection(this, underlying.Keys);
         public ICollection<TValue> Values => new ValueCollection(this, underlying.Values);
+
+        public KeyCollection ObservableKeys => new(this, underlying.Keys);
+        public ValueCollection ObservableValues => new(this, underlying.Values);
 
         public int Count => underlying.Count;
         public bool IsReadOnly => ((IDictionary<TKey, TValue>)underlying).IsReadOnly;
@@ -88,12 +92,31 @@ namespace BToolbox.Model
             return false;
         }
 
+        public int Remove(TValue value)
+        {
+            List<IObservableEnumerable<KeyValuePair<TKey, TValue>>.ItemWithPosition> removedItems = new();
+            List<TKey> keysToRemove = new();
+            int i = 0;
+            foreach (KeyValuePair<TKey, TValue> kvp in this)
+            {
+                if (EqualityComparer<TValue>.Default.Equals(kvp.Value, value))
+                {
+                    removedItems.Add(new(kvp, i));
+                    keysToRemove.Add(kvp.Key);
+                }
+                i++;
+            }
+            keysToRemove.ForEach(k => underlying.Remove(k));
+            ItemsRemoved?.Invoke(removedItems);
+            return keysToRemove.Count;
+        }
+
         public bool Contains(KeyValuePair<TKey, TValue> keyValuePair) => ((IDictionary<TKey, TValue>)underlying).Contains(keyValuePair);
         public bool ContainsKey(TKey key) => underlying.ContainsKey(key);
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => ((IDictionary<TKey, TValue>)underlying).CopyTo(array, arrayIndex);
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => underlying.TryGetValue(key, out value);
 
-        private abstract class KeyValueCollection<T> : ObservableEnumerableAdapter<T, KeyValuePair<TKey, TValue>>, IObservableCollection<T>
+        public abstract class KeyValueCollection<T> : ObservableEnumerableAdapter<T, KeyValuePair<TKey, TValue>>, IObservableCollection<T>
         {
 
             private ICollection<T> underlying;
@@ -116,13 +139,13 @@ namespace BToolbox.Model
 
         }
 
-        private class KeyCollection : KeyValueCollection<TKey>
+        public class KeyCollection : KeyValueCollection<TKey>
         {
             public KeyCollection(ObservableDictionary<TKey, TValue> dictionary, ICollection<TKey> underlying) : base(dictionary, underlying) { }
             protected override TKey convertAdaptee(KeyValuePair<TKey, TValue> adaptee) => adaptee.Key;
         }
 
-        private class ValueCollection : KeyValueCollection<TValue>
+        public class ValueCollection : KeyValueCollection<TValue>
         {
             public ValueCollection(ObservableDictionary<TKey, TValue> dictionary, ICollection<TValue> underlying) : base(dictionary, underlying) { }
             protected override TValue convertAdaptee(KeyValuePair<TKey, TValue> adaptee) => adaptee.Value;
