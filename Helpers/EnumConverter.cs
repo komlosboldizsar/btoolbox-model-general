@@ -24,6 +24,9 @@ namespace BToolbox.Helpers
             return convertedValue;
         }
 
+        public IEnumerable<TEnum> EnumValues => convertedValues.Keys;
+        public IEnumerable<TConvertedValue> ConvertedValues => convertedValues.Values;
+
         #region Implement IEnumerable, so we can use collection initializers
         public IEnumerator<KeyValuePair<TEnum, TConvertedValue>> GetEnumerator()
             => convertedValues.GetEnumerator();
